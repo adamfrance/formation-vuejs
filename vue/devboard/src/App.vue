@@ -7,6 +7,7 @@ export default {
     return {
       appTitle: "DevBoard",
       showPriority: true,
+      theme: 'dark',
       tasks: [
         {
           id: 1,
@@ -33,21 +34,39 @@ export default {
     };
   },
   methods: {
-    clearTasks() {
-      this.tasks = [];
+    toggleTheme() {
+      this.theme = this.theme === 'dark' ? 'light' : 'dark'
+      document.documentElement.dataset.theme = this.theme
     },
-    togglePriority() {
-      this.showPriority = !this.showPriority;
+    removeTask(id) {
+      this.tasks = this.tasks.filter(t => t.id !== id)
     },
-  },
+    toggleTask(id) {
+      const task = this.tasks.find(t => t.id === id)
+      if (task) task.done = !task.done
+    }
+  }
 };
 </script>
 
 <template>
   <main class="app">
+    <button
+      class="theme"
+      @click="toggleTheme"
+      :title="'Passer en mode ' + (theme === 'dark' ? 'clair' : 'sombre')"
+    >
+      {{ theme === "dark" ? "☀️" : "🌙" }}
+    </button>
     <h1 :title="'Application ' + appTitle">{{ appTitle }}</h1>
     <div v-if="tasks.length > 0" class="task-list">
-      <TaskCard v-for="task in tasks" :key="task.id" :task="task" />
+      <TaskCard
+        v-for="task in tasks"
+        :key="task.id"
+        :task="task"
+        @delete-task="removeTask"
+        @toggle-task="toggleTask"
+      />
     </div>
     <p v-else class="empty">Aucune tâche</p>
   </main>
@@ -70,5 +89,9 @@ export default {
 .empty {
   color: var(--muted);
   font-style: italic;
+}
+.theme {
+  float: right;
+  font-size: 1.2rem;
 }
 </style>
