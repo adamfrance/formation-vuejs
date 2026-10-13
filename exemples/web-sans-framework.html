@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="fr">
+<body>
+  <p id="sortie">Clics : 0</p>
+  <button id="bouton">+1</button>
+  <script>
+    let compteur = 0
+    const sortie = document.querySelector('#sortie')
+    document.querySelector('#bouton').addEventListener('click', () => {
+      compteur++
+      sortie.textContent = 'Clics : ' + compteur
+    })
+  </script>
+</body>
+</html>
