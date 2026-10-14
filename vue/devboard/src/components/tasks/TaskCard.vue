@@ -30,6 +30,12 @@ export default {
       this.$emit("toggle-task", this.task.id);
     },
   },
+  mounted() {
+    console.log(`[TaskCard] #${this.task.id} monté`);
+  },
+  unmounted() {
+    console.log(`[TaskCard] #${this.task.id} démonté`);
+  }
 };
 </script>
 
