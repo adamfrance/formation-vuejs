@@ -1,42 +1,28 @@
-<script>
+<script setup>
+import { computed, onMounted, onUnmounted } from "vue";
 import BaseBadge from "../common/BaseBadge.vue";
 
-export default {
-  name: "TaskCard",
-  // Déclare BaseBadge utilisable dans le template
-  components: { BaseBadge },
-  // Données reçues
-  props: {
-    task: {
-      type: Object,
-      required: true,
-    },
+const props = defineProps({
+  task: {
+    type: Object,
+    required: true,
   },
-  emits: ["delete-task", "toggle-task"],
-  // Valeurs calculées
-  computed: {
-    // Type de pastille selon la priorité
-    badgeType() {
-      if (this.task.priority === "Haute") return "danger";
-      if (this.task.priority === "Moyenne") return "warning";
-      return "success";
-    },
-  },
-  methods: {
-    onDelete() {
-      this.$emit("delete-task", this.task.id);
-    },
-    onToggle() {
-      this.$emit("toggle-task", this.task.id);
-    },
-  },
-  mounted() {
-    console.log(`[TaskCard] #${this.task.id} monté`);
-  },
-  unmounted() {
-    console.log(`[TaskCard] #${this.task.id} démonté`);
-  }
-};
+});
+
+const emit = defineEmits(["delete-task", "toggle-task"]);
+
+const badgeType = computed(() => {
+  if (props.task.priority === "Haute") return "danger";
+  if (props.task.priority === "Moyenne") return "warning";
+  return "success";
+});
+
+const onDelete = () => emit("delete-task", props.task.id);
+
+const onToggle = () => emit("toggle-task", props.task.id);
+
+onMounted(() => console.log(`[TaskCard] #${props.task.id} monté`));
+onUnmounted(() => console.log(`[TaskCard] #${props.task.id} démonté`));
 </script>
 
 <template>
@@ -53,6 +39,11 @@ export default {
         {{ task.done ? "Rouvrir" : "Terminer" }}
       </button>
       <button @click="onDelete" class="danger">Supprimer</button>
+      <RouterLink
+        :to="{ name: 'task-detail', params: { id: task.id } }"
+        class="link"
+        >Détail</RouterLink
+      >
     </div>
   </article>
 </template>
@@ -89,5 +80,10 @@ export default {
 .danger {
   border-color: var(--red);
   color: var(--red);
+}
+.link {
+  color: var(--blue);
+  margin-left: auto;
+  text-decoration: none;
 }
 </style>
