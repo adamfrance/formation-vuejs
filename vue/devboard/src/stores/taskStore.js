@@ -1,32 +1,14 @@
 import { defineStore } from "pinia";
+import api from "../services/api";
 
-const defaultTasks = [
-  {
-    id: 1,
-    title: "Installer Vite",
-    description: "Configurer l'environnement",
-    priority: "Haute",
-    done: true,
-  },
-  {
-    id: 2,
-    title: "Créer les composants",
-    description: "Découper l'application",
-    priority: "Moyenne",
-    done: false,
-  },
-  {
-    id: 3,
-    title: "Configurer le routeur",
-    description: "Prévu plus tard",
-    priority: "Basse",
-    done: false,
-  },
-];
+
 
 export const useTaskStore = defineStore("tasks", {
   state: () => ({
-    tasks: structuredClone(defaultTasks),
+    tasks: [],
+    loading: false,
+    loaded: false,
+    error: "",
     priorityFilter: "Toutes",
   }),
 
@@ -51,6 +33,19 @@ export const useTaskStore = defineStore("tasks", {
   },
 
   actions: {
+    async loadTasks({ force = false } = {}) {
+      if (this.loading || (this.loaded && !force)) return;
+      this.loading = true;
+      this.error = "";
+      try {
+        this.tasks = await api.getTasks();
+        this.loaded = true;
+      } catch (e) {
+        this.error = e.message;
+      } finally {
+        this.loading = false;
+      }
+    },
     addTask(payload) {
       this.tasks.push({ id: Date.now(), done: false, ...payload });
     },

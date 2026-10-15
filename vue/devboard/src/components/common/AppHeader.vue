@@ -2,8 +2,20 @@
 import { storeToRefs } from "pinia";
 import { ref } from "vue";
 import { useTaskStore } from "../../stores/taskStore";
+import { useAuthStore } from "../../stores/authStore";
+import { useRoute, useRouter } from "vue-router";
 
 const { tasks } = storeToRefs(useTaskStore());
+
+const auth = useAuthStore();
+const { user, isLoggedIn } = storeToRefs(auth);
+const route = useRoute();
+const router = useRouter();
+
+const onLogout = () => {
+  auth.logout();
+  if (route.meta.requiresAuth) router.push({ name: "dashboard" });
+};
 
 // Thème courant : 'dark' ou 'light'
 const theme = ref("dark");
@@ -19,7 +31,15 @@ const toggleTheme = () => {
     <nav class="nav">
       <RouterLink to="/">Tableau de bord</RouterLink>
       <RouterLink to="/analytics">Statistiques</RouterLink>
+      <RouterLink to="/help">Aide</RouterLink>
       <span class="count">{{ tasks.length }} tâches</span>
+      <template v-if="isLoggedIn">
+        <span class="user">
+          {{ user.username }}
+        </span>
+        <button @click="onLogout">Déconnexion</button>
+      </template>
+      <RouterLink v-else to="/login">Connexion</RouterLink>
       <button
         class="theme"
         @click="toggleTheme"
