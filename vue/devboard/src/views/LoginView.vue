@@ -2,18 +2,24 @@
 import { ref, computed } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useAuthStore } from "../stores/authStore";
+import { storeToRefs } from "pinia";
 
 const route = useRoute(); //lire la route actuelle
 const router = useRouter(); // redirection
 const auth = useAuthStore();
+const { loading, error } = storeToRefs(auth);
 
 const username = ref("");
-const isValid = computed(() => username.value.length >= 3);
+const password = ref("");
+const isValid = computed(
+  () => username.value.length >= 3 && password.value.length >= 3,
+);
 
-const onLogin = () => {
+const onLogin = async () => {
   if (!isValid.value) return;
-  auth.login(username.value);
-  router.push(route.query.redirect || { name: "dashboard" });
+  const ok = await auth.login(username.value, password.value);
+  password.value = "";
+  if (ok) router.push(route.query.redirect || { name: "dashboard" });
 };
 </script>
 
@@ -26,11 +32,21 @@ const onLogin = () => {
       <input
         v-model.trim="username"
         type="text"
-        placeholder="Nom d'utilisateur (3 caractères minimum)"
+        placeholder="Nom d'utilisateur"
         autocomplete="username"
       />
-      <button type="submit" :disabled="!isValid">Se connecter</button>
+      <input
+        v-model="password"
+        type="password"
+        placeholder="Mot de passe"
+        autocomplete="current-password"
+      />
+      <button type="submit" :disabled="!isValid || loading">
+        {{ loading ? "Connexion..." : "Se connecter" }}
+      </button>
     </form>
+    <p v-if="error" class="error" role="alert">{{ error }}</p>
+    <p class="hint">Compte de test DummyJSON : emilys / emilyspass</p>
   </section>
 </template>
 
@@ -58,5 +74,12 @@ const onLogin = () => {
   color: var(--text);
   border: 1px solid var(--border);
   border-radius: 6px;
+}
+.error {
+  color: var(--red);
+}
+.hint {
+  color: var(--muted);
+  font-size: 0.9rem;
 }
 </style>

@@ -1,14 +1,19 @@
 <script setup>
-import { computed } from "vue";
+import { storeToRefs } from "pinia";
+import { computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
-import { useTasks } from "../composables/useTasks";
+import { useTaskStore } from "../stores/taskStore";
 
 const props = defineProps({
   id: { type: Number, required: true },
 });
 
 const router = useRouter();
-const { tasks, toggleTask, removeTask } = useTasks();
+const store = useTaskStore()
+const { tasks } = storeToRefs(store)
+const { loadTasks, toggleTask, removeTask } = store;
+// Appel sur /task/2 si le chargement n'est pas encore fait
+onMounted(() => loadTasks())
 
 const task = computed(() => tasks.value.find((t) => t.id === props.id));
 

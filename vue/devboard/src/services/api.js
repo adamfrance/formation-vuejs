@@ -1,9 +1,16 @@
 import axios from "axios";
+import { useAuthStore } from "../stores/authStore";
 
 const apiClient = axios.create({
-  baseUrl: import.meta.env.VITE_API_URL,
+  baseURL: import.meta.env.VITE_API_URL,
   headers: { "Content-Type": "application/json" },
   timeout: 3000,
+});
+
+apiClient.interceptors.request.use((config) => {
+  const auth = useAuthStore();
+  if (auth.token) config.headers.Authorization = `Bearer ${auth.token}`;
+  return config;
 });
 
 apiClient.interceptors.response.use(
@@ -13,7 +20,16 @@ apiClient.interceptors.response.use(
     if (error.code === "ECONNABORTED")
       message = "Le serveur met trop de temps à répondre";
     else if (!error.response) message = "Serveur injoignable";
-    else if (error.response.status === 404)
+    else if (
+      error.config?.url === "/auth/login" &&
+      [400, 401].includes(error.response.status)
+    )
+      message = "Identifiant ou mot de passe incorrect";
+    else if (error.response.status === 401) {
+      // Jeton expiré ou refusé : on déconnecte
+      message = "Session expirée, reconnectez-vous";
+      useAuthStore().logout();
+    } else if (error.response.status === 404)
       message = "Ressource introuvable (404)";
     else if (error.response.status >= 500)
       message = `Erreur du serveur (${error.response.status})`;
@@ -65,4 +81,9 @@ const deleteTask = async (id) => {
   await apiClient.delete(`/todos/${id}`);
 };
 
-export default { getTasks, createTask, updateTask, deleteTask };
+const login = async (username, password) => {
+  const { data } = await apiClient.post('/auth/login', { username, password, expiresInMins: 60 })
+  return data
+}
+
+export default { getTasks, createTask, updateTask, deleteTask, login };

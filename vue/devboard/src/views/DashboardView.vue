@@ -4,12 +4,16 @@ import TaskForm from "../components/tasks/TaskForm.vue";
 import TaskFilter from "../components/tasks/TaskFilter.vue";
 import { storeToRefs } from "pinia";
 import { useTaskStore } from "../stores/taskStore.js";
+import { onMounted } from "vue";
 
 const store = useTaskStore();
 // state et getters
-const { tasks, priorityFilter, filteredTasks, doneCount } = storeToRefs(store);
+const { tasks, priorityFilter, filteredTasks, doneCount, loading, error } =
+  storeToRefs(store);
 // actions
-const { addTask, removeTask, toggleTask } = store;
+const { loadTasks, addTask, removeTask, toggleTask } = store;
+
+onMounted(() => loadTasks());
 
 const appTitle = "DevBoard";
 </script>
@@ -19,20 +23,27 @@ const appTitle = "DevBoard";
     <h1>{{ appTitle }}</h1>
     <h2>Tableau de bord</h2>
     <TaskForm @add-task="addTask" />
-    <div class="toolbar">
-      <!-- V-model de composant -->
-      <TaskFilter v-model="priorityFilter" />
-      <span class="stats"
-        >{{ doneCount }} terminée(s) sur {{ tasks.length }}</span
-      >
-    </div>
-    <TaskList
-      v-if="filteredTasks.length > 0"
-      :tasks="filteredTasks"
-      @delete-task="removeTask"
-      @toggle-task="toggleTask"
-    />
-    <p v-else class="empty">Aucune tâche pour ce filtre.</p>
+    <p v-if="error" class="error" role="alert">
+      {{ error }}
+      <button @click="loadTasks({ force: true })">Recharger</button>
+    </p>
+    <p v-if="loading" class="info">Chargement des tâches...</p>
+    <template v-else>
+      <div class="toolbar">
+        <!-- V-model de composant -->
+        <TaskFilter v-model="priorityFilter" />
+        <span class="stats"
+          >{{ doneCount }} terminée(s) sur {{ tasks.length }}</span
+        >
+      </div>
+      <TaskList
+        v-if="filteredTasks.length > 0"
+        :tasks="filteredTasks"
+        @delete-task="removeTask"
+        @toggle-task="toggleTask"
+      />
+      <p v-else class="empty">Aucune tâche pour ce filtre.</p>
+    </template>
   </section>
 </template>
 
@@ -55,8 +66,15 @@ const appTitle = "DevBoard";
 .stats {
   color: var(--muted);
 }
-.empty {
+.empty, .info {
   color: var(--muted);
   font-style: italic;
+}
+.error {
+  color: var(--red);
+  border: 1px solid var(--red);
+  border-radius: 6px;
+  padding: 0.6rem 0.8rem;
+  margin-bottom: 1rem;
 }
 </style>

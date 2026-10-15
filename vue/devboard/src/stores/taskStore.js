@@ -57,5 +57,5 @@ export const useTaskStore = defineStore("tasks", {
       if (task) task.done = !task.done;
     },
   },
-  persist: { pick: ["tasks"] },
+  persist: { pick: ["priorityFilter"] },
 });
